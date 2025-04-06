@@ -2,8 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 완전히 스크롤 제거 */
-html, body {
-    overflow: hidden;
-  }
-  
