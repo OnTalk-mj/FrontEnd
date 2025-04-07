@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-const Header = ({ isLoggedIn }) => {
+const Header = ({ isLoggedIn, onServiceClick }) => {
   return (
     <nav className="w-full flex justify-between items-center px-8 py-4 border-b bg-white">
       <div className="flex items-center space-x-8">
@@ -8,7 +8,9 @@ const Header = ({ isLoggedIn }) => {
           <img src="/logo.jpg" alt="onTALK 로고" className="h-10 object-contain" />
         </Link>
         <div className="flex space-x-6 text-base">
-          <Link to="#">서비스 소개</Link>
+          <Link to="/#service" className="hover:underline">
+            서비스 소개
+          </Link>
           <Link to="#">상담센터 찾기</Link>
           <Link to="#">안전 가이드</Link>
         </div>
@@ -22,7 +24,9 @@ const Header = ({ isLoggedIn }) => {
         </div>
       )}
     </nav>
+  
   );
 };
+
 
 export default Header;

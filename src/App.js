@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -28,15 +28,32 @@ function App() {
 
 function MainLayout({ isLoggedIn, setIsLoggedIn }) {
   const location = useLocation();
-  const hideHeaderOn = ['/chat']; // Header를 숨기고 싶은 경로
+  const serviceRef = useRef(null); // 💡 스크롤 타겟 ref
 
+  const scrollToService = () => {
+    if (serviceRef.current) {
+      serviceRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const hideHeaderOn = ['/chat'];
   const shouldHideHeader = hideHeaderOn.includes(location.pathname);
 
   return (
     <>
-      {!shouldHideHeader && <Header isLoggedIn={isLoggedIn} />}
+      {/* 공통 헤더에 props로 넘겨줌 */}
+      {!shouldHideHeader && <Header isLoggedIn={isLoggedIn} onServiceClick={scrollToService} />}
+
       <Routes>
-        <Route path="/" element={<HomePage isLoggedIn={isLoggedIn} />} />
+        <Route
+          path="/"
+          element={
+            <HomePage
+              isLoggedIn={isLoggedIn}
+              serviceRef={serviceRef} // 👈 ref 전달
+            />
+          }
+        />
         <Route
           path="/login"
           element={<LoginPage setIsLoggedIn={setIsLoggedIn} />}
@@ -53,7 +70,6 @@ function MainLayout({ isLoggedIn, setIsLoggedIn }) {
         <Route path="/signup/terms" element={<SignUpTerms />} />
         <Route path="/signup/form" element={<SignUpForm />} />
         <Route path="/signup/complete" element={<SignUpComplete />} />
-
       </Routes>
     </>
   );
