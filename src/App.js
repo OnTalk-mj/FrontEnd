@@ -28,7 +28,7 @@ function App() {
 
 function MainLayout({ isLoggedIn, setIsLoggedIn }) {
   const location = useLocation();
-  const serviceRef = useRef(null); // 💡 스크롤 타겟 ref
+  const serviceRef = useRef(null); 
 
   const scrollToService = () => {
     if (serviceRef.current) {
@@ -41,7 +41,6 @@ function MainLayout({ isLoggedIn, setIsLoggedIn }) {
 
   return (
     <>
-      {/* 공통 헤더에 props로 넘겨줌 */}
       {!shouldHideHeader && <Header isLoggedIn={isLoggedIn} onServiceClick={scrollToService} />}
 
       <Routes>
@@ -50,7 +49,7 @@ function MainLayout({ isLoggedIn, setIsLoggedIn }) {
           element={
             <HomePage
               isLoggedIn={isLoggedIn}
-              serviceRef={serviceRef} // 👈 ref 전달
+              serviceRef={serviceRef} 
             />
           }
         />
