@@ -16,9 +16,41 @@ const SignUpForm = () => {
     zipcode: '',
   });
 
+  const [errors, setErrors] = useState({
+    passwordMatch: false,
+    birthFormat: false,
+    phoneFormat: false,
+  });
+
+  const validateForm = () => {
+    const passwordMatch = form.password === form.confirmPassword;
+    const birthFormat = /^\d{8}$/.test(form.birth); // YYYYMMDD
+    const phoneFormat = /^01\d{8,9}$/.test(form.phone); // 01012345678
+
+    setErrors({
+      passwordMatch: !passwordMatch,
+      birthFormat: !birthFormat,
+      phoneFormat: !phoneFormat
+    });
+
+    return passwordMatch && birthFormat && phoneFormat;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleClickPostCode = () => {
+    new window.daum.Postcode({
+      oncomplete: function (data) {
+        setForm((prev) => ({
+          ...prev,
+          zipcode: data.zonecode,
+          address: data.roadAddress,
+        }));
+      },
+    }).open();
   };
 
   const handleComplete = () => {
@@ -30,7 +62,8 @@ const SignUpForm = () => {
       form.birth &&
       form.phone &&
       form.address &&
-      form.zipcode
+      form.zipcode &&
+      validateForm()
     ) {
       navigate('/signup/complete', {
         state: {
@@ -41,27 +74,27 @@ const SignUpForm = () => {
         },
       });
     } else {
-      alert('모든 항목을 입력해주세요.');
+      alert('모든 항목을 올바르게 입력해주세요.');
     }
   };
 
   return (
     <>
-      <div className="max-w-3xl mx-auto px-6 py-12 space-y-6">
+      <div className="max-w-3xl mx-auto px-6 py-12">
         <div className="flex items-baseline space-x-4 mb-6">
           <h2 className="text-2xl font-bold mb-2">회원가입</h2>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-500 mb-2">
             &gt; 약관 동의 &nbsp;&nbsp; &gt; <b>아이디 생성</b> &nbsp;&nbsp; &gt; 완료
           </p>
         </div>
 
         {/* 이메일 */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 mb-6">
           <input
             type="text"
             name="emailId"
             placeholder="abcd1234"
-            className="w-1/3 px-3 py-1 border rounded"
+            className="w-1/3 px-3 py-2 border rounded"
             value={form.emailId}
             onChange={handleChange}
           />
@@ -70,23 +103,23 @@ const SignUpForm = () => {
             name="emailDomain"
             value={form.emailDomain}
             onChange={handleChange}
-            className="w-1/3 px-2 py-1 border rounded"
+            className="w-1/3 px-2 py-2 border rounded"
           >
             <option>naver.com</option>
             <option>gmail.com</option>
             <option>daum.net</option>
           </select>
-          <button className="px-4 py-1 border rounded text-sm">중복확인</button>
+          <button className="px-4 py-2 border rounded text-sm">중복확인</button>
         </div>
 
         {/* 비밀번호 */}
-        <div className="flex space-x-4">
+        <div className="flex space-x-4 mb-6">
           <div className="w-1/2">
             <label className="block mb-1">비밀번호</label>
             <input
               type="password"
               name="password"
-              className="w-full px-3 py-1 border rounded"
+              className="w-full px-3 py-2 border rounded"
               value={form.password}
               onChange={handleChange}
             />
@@ -96,73 +129,95 @@ const SignUpForm = () => {
             <input
               type="password"
               name="confirmPassword"
-              className="w-full px-3 py-1 border rounded"
+              className="w-full px-3 py-2 border rounded"
               value={form.confirmPassword}
               onChange={handleChange}
             />
+            {errors.passwordMatch && (
+              <p className="text-red-500 text-sm mt-1">비밀번호가 일치하지 않습니다.</p>
+            )}
           </div>
         </div>
 
         {/* 이름 */}
-        <div>
+        <div className="mb-6">
           <label className="block mb-1">이름</label>
           <input
             name="name"
-            className="w-full px-3 py-1 border rounded"
+            className="w-full px-3 py-2 border rounded"
             value={form.name}
             onChange={handleChange}
           />
         </div>
 
         {/* 생년월일 */}
-        <div>
+        <div className="mb-6">
           <label className="block mb-1">생년월일</label>
           <input
             name="birth"
-            placeholder="20010123"
-            className="w-full px-3 py-1 border rounded"
+            placeholder="11112233"
+            className="w-full px-3 py-2 border rounded"
             value={form.birth}
             onChange={handleChange}
           />
+          {errors.birthFormat && (
+            <p className="text-red-500 text-sm mt-1">생년월일은 8자리 숫자(YYYYMMDD)로 입력해주세요.</p>
+          )}
         </div>
 
         {/* 전화번호 */}
-        <div>
+        <div className="mb-6">
           <label className="block mb-1">전화번호</label>
           <input
             name="phone"
             placeholder="01012345678"
-            className="w-full px-3 py-1 border rounded"
+            className="w-full px-3 py-2 border rounded"
             value={form.phone}
             onChange={handleChange}
           />
+          {errors.phoneFormat && (
+            <p className="text-red-500 text-sm mt-1">전화번호 형식이 올바르지 않습니다. 예: 01012345678</p>
+          )}
         </div>
 
-        {/* 주소 */}
-        <div className="flex space-x-2">
+        <div className="flex space-x-4 mb-6">
+          {/* 주소 입력 */}
           <div className="w-2/3">
             <label className="block mb-1">주소</label>
             <input
               name="address"
-              className="w-full px-3 py-1 border rounded"
+              className="w-full px-3 py-2 border rounded h-[42px]"
               value={form.address}
               onChange={handleChange}
+              readOnly
             />
           </div>
+                
+          {/* 우편번호 + 버튼 */}
           <div className="w-1/3">
             <label className="block mb-1">우편번호</label>
-            <input
-              name="zipcode"
-              className="w-full px-3 py-1 border rounded"
-              value={form.zipcode}
-              onChange={handleChange}
-            />
+            <div className="flex space-x-2">
+              <input
+                name="zipcode"
+                className="w-full px-3 py-2 border rounded h-[42px]"
+                value={form.zipcode}
+                onChange={handleChange}
+                readOnly
+              />
+              <button
+                type="button"
+                onClick={handleClickPostCode}
+                className="px-3 h-[42px] bg-gray-200 hover:bg-gray-300 border rounded text-sm whitespace-nowrap"
+              >
+                주소찾기
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* 완료 버튼 */}
+
         <button
-          className="w-full bg-[#e39292] hover:bg-[#d87c7c] text-white py-2 rounded"
+          className="w-full bg-[#e39292] hover:bg-[#d87c7c] text-white py-3 rounded"
           onClick={handleComplete}
         >
           회원가입 완료하기
