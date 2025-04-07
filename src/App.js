@@ -28,7 +28,7 @@ function App() {
 
 function MainLayout({ isLoggedIn, setIsLoggedIn }) {
   const location = useLocation();
-  const serviceRef = useRef(null); 
+  const serviceRef = useRef(null); // 스크롤 타겟 ref
 
   const scrollToService = () => {
     if (serviceRef.current) {
@@ -49,7 +49,7 @@ function MainLayout({ isLoggedIn, setIsLoggedIn }) {
           element={
             <HomePage
               isLoggedIn={isLoggedIn}
-              serviceRef={serviceRef} 
+              serviceRef={serviceRef} //  ref 전달
             />
           }
         />
