@@ -25,7 +25,7 @@ const SignUpForm = () => {
   const validateForm = () => {
     const passwordMatch = form.password === form.confirmPassword;
     const birthFormat = /^\d{8}$/.test(form.birth); // YYYYMMDD
-    const phoneFormat = /^01\d{8,9}$/.test(form.phone); // 01012345678
+    const phoneFormat = /^010\d{8}$/.test(form.phone); // 01012345678
 
     setErrors({
       passwordMatch: !passwordMatch,
@@ -176,7 +176,7 @@ const SignUpForm = () => {
             onChange={handleChange}
           />
           {errors.phoneFormat && (
-            <p className="text-red-500 text-sm mt-1">전화번호 형식이 올바르지 않습니다. 예: 01012345678</p>
+            <p className="text-red-500 text-sm mt-1">010으로 시작하는 8자리 숫자만 입력해주세요</p>
           )}
         </div>
 
