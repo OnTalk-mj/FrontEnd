@@ -8,11 +8,9 @@ const Header = ({ isLoggedIn, onServiceClick }) => {
           <img src="/logo.jpg" alt="onTALK 로고" className="h-10 object-contain" />
         </Link>
         <div className="flex space-x-6 text-base">
-          <Link to="/#service" className="hover:underline">
-            서비스 소개
-          </Link>
-          <Link to="#">상담센터 찾기</Link>
-          <Link to="#">안전 가이드</Link>
+          <Link to="/#service">서비스 소개</Link>
+          <Link to="/consult">상담센터 찾기</Link>
+          <Link to="/safety">안전 가이드</Link>
         </div>
       </div>
 

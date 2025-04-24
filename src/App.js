@@ -15,6 +15,9 @@ import Header from './components/Header';
 import SignUpTerms from './pages/SignUpTerms';
 import SignUpForm from './pages/SignUpForm';
 import SignUpComplete from './pages/SignUpComplete';
+import SafetyGuide from './pages/SafetyGuide';
+import ConsultCenterPage from './pages/ConsultCenterPage';
+
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -69,6 +72,8 @@ function MainLayout({ isLoggedIn, setIsLoggedIn }) {
         <Route path="/signup/terms" element={<SignUpTerms />} />
         <Route path="/signup/form" element={<SignUpForm />} />
         <Route path="/signup/complete" element={<SignUpComplete />} />
+        <Route path="/safety" element={<SafetyGuide />} />
+        <Route path="/consult" element={<ConsultCenterPage />} />
       </Routes>
     </>
   );
