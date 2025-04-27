@@ -16,7 +16,7 @@ const Header = ({ isLoggedIn, onServiceClick }) => {
 
       {isLoggedIn && (
         <div className="flex space-x-6 text-base">
-          <Link to="/mypage" className="hover:underline">
+          <Link to="/mypage">
           마이페이지
           </Link>
         </div>

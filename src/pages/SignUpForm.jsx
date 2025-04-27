@@ -1,8 +1,27 @@
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
 
 const SignUpForm = () => {
+  const handleCheckDuplicate = async () => {
+    try {
+      const res = await axios.post('http://localhost:8000/api/accounts/id-check/', {
+        username: `${form.emailId}@${form.emailDomain}`,
+      });
+  
+      if (res.data.exists) {
+        alert('이미 존재하는 아이디입니다.');
+      } else {
+        alert('사용 가능한 아이디입니다!');
+      }
+    } catch (err) {
+      alert('중복 확인 중 오류가 발생했습니다.');
+      console.error(err);
+    }
+  };
+  
   const navigate = useNavigate();
   const [form, setForm] = useState({
     emailId: '',
@@ -109,7 +128,9 @@ const SignUpForm = () => {
             <option>gmail.com</option>
             <option>daum.net</option>
           </select>
-          <button className="px-4 py-2 border rounded text-sm">중복확인</button>
+          <button type="button"
+          onClick={handleCheckDuplicate}
+          className="px-4 py-2 border rounded text-sm">중복확인</button>
         </div>
 
         {/* 비밀번호 */}
