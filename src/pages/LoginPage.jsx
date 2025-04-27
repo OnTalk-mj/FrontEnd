@@ -1,20 +1,48 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
 
 const LoginPage = ({ setIsLoggedIn }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (email && password) {
+    if (!email || !password) {
+      alert('이메일과 비밀번호를 입력하세요!');
+      return;
+    }
+  
+    try {
+      const response = await axios.post('http://localhost:8000/api/accounts/login/', {
+        username: email,
+        password: password,
+      });
+  
+      // 로그인 성공
+      const { access, refresh } = response.data;
+      localStorage.setItem('accessToken', access);
+      localStorage.setItem('refreshToken', refresh);
       setIsLoggedIn(true);
       navigate('/');
-    } else {
-      alert('이메일과 비밀번호를 입력하세요!');
+    } catch (error) {
+      if (error.response) {
+        const message = error.response.data?.non_field_errors?.[0] || '로그인에 실패했습니다.';
+        if (message.includes('No active account found')) {
+          alert('없는 아이디입니다.');
+        } else if (message.includes('Unable to log in')) {
+          alert('비밀번호가 틀렸습니다.');
+        } else {
+          alert(message);
+        }
+      } else {
+        alert('서버에 연결할 수 없습니다.');
+      }
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-white">  
