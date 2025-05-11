@@ -16,16 +16,33 @@ const ConsultCenterPage = () => {
   };
 
   const sampleData = [
-    { region: '서울', name: '서울청소년상담센터', fields: ['진로', '우울'], address: '서울특별시 강남구 테헤란로 212' },
-    { region: '경기', name: '경기청소년복지센터', fields: ['가족'], address: '경기도 수원시 팔달구 효원로 1' },
-    { region: '서울', name: '서울가족상담소', fields: ['가족', '우울'], address: '서울특별시 종로구 사직로 8길' },
+    {
+      region: '서울',
+      name: '서울청소년상담센터',
+      fields: ['진로', '우울'],
+      address: '서울특별시 강남구 테헤란로 212',
+      phone: '02-123-4567',
+      link: 'https://seoulcenter.or.kr'
+    },
+    {
+      region: '경기',
+      name: '경기청소년복지센터',
+      fields: ['가족'],
+      address: '경기도 수원시 팔달구 효원로 1',
+      phone: '031-987-6543',
+      link: 'https://ggcenter.or.kr'
+    },
+    {
+      region: '서울',
+      name: '서울가족상담소',
+      fields: ['가족', '우울'],
+      address: '서울특별시 종로구 사직로 8길',
+      phone: '02-555-0000',
+      link: 'https://familycenter.or.kr'
+    },
   ];
 
   const handleSearch = () => {
-    console.log('조회 버튼 클릭됨');
-    console.log('지역:', region);
-    console.log('검색어:', keyword);
-    console.log('선택한 분야:', fields);
     processCenters();
   };
 
@@ -106,11 +123,27 @@ const ConsultCenterPage = () => {
     };
     const map = new window.kakao.maps.Map(container, options);
 
+    const infowindow = new window.kakao.maps.InfoWindow({ zIndex: 1 });
+
     sortedCenters.forEach((center) => {
-      new window.kakao.maps.Marker({
+      const marker = new window.kakao.maps.Marker({
         map,
         position: new window.kakao.maps.LatLng(center.coord.lat, center.coord.lng),
         title: center.name,
+      });
+
+      const content = `
+        <div style="padding:8px 12px;font-size:14px;">
+          <strong>${center.name}</strong><br/>
+          <span>${center.region} · ${center.fields.join(', ')}</span><br/>
+          <span>📞 ${center.phone}</span><br/>
+          <a href="${center.link}" target="_blank" style="color:blue; text-decoration:underline;">홈페이지 방문</a>
+        </div>
+      `;
+
+      window.kakao.maps.event.addListener(marker, 'click', () => {
+        infowindow.setContent(content);
+        infowindow.open(map, marker);
       });
     });
   }, [mapLoaded, sortedCenters]);
