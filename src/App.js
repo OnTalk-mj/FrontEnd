@@ -69,6 +69,7 @@ function MainLayout({ isLoggedIn, setIsLoggedIn }) {
           path="/chat"
           element={isLoggedIn ? <ChatPage /> : <Navigate to="/login" />}
         />
+        {/* <Route path="/chat" element={<ChatPage />} /> */}
         <Route path="/signup/terms" element={<SignUpTerms />} />
         <Route path="/signup/form" element={<SignUpForm />} />
         <Route path="/signup/complete" element={<SignUpComplete />} />

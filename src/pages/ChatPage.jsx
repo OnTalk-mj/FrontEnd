@@ -6,7 +6,6 @@ import { FaUser } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-
 const ChatPage = () => {
   const [messages, setMessages] = useState([
     { sender: 'bot', text: '어떤 이야기든 괜찮아요. 힘든 일이 있거나, 그냥 누군가에게 말하고 싶은 게 있으면 편하게 얘기해 주세요.' },
@@ -14,16 +13,35 @@ const ChatPage = () => {
   const [input, setInput] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const newMessage = { sender: 'user', text: input };
     setMessages((prev) => [...prev, newMessage]);
-
-    // 여기에 추후 백엔드로 메시지 전송 API 호출 추가 예정
-    // fetch('/api/chat', { method: 'POST', body: JSON.stringify({ message: input }) })
-
     setInput('');
+
+    try {
+      const response = await fetch('http://localhost:8000/api/chat/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: input }),
+      });
+
+      if (!response.ok) throw new Error('서버 응답 오류');
+
+      const data = await response.json();
+      const botMessage = { sender: 'bot', text: data.response };
+      setMessages((prev) => [...prev, botMessage]);
+
+    } catch (error) {
+      console.error('Error fetching bot response:', error);
+      setMessages((prev) => [
+        ...prev,
+        { sender: 'bot', text: '죄송해요. 잠시 오류가 발생했어요.' },
+      ]);
+    }
   };
 
   return (
@@ -86,7 +104,6 @@ const ChatPage = () => {
               >
                 {msg.text}
               </div>
-            
             ))}
           </div>
 
