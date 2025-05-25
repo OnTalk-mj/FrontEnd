@@ -105,9 +105,9 @@ const SignUpTerms = () => {
         </div>
 
         <button
-          className={`w-full py-2 text-white rounded ${
+          className={`w-full py-2 text-black  rounded-2xl ${
             allChecked
-              ? 'bg-[#e39292] hover:bg-[#d87c7c]'
+              ? 'bg-[#ffffff] hover:bg-[#9bcf9f] border-2 border-[#9bcf9f]'
               : 'bg-gray-300 cursor-not-allowed'
           }`}
           onClick={handleNext}

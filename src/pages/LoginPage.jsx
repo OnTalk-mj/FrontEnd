@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
 
 const LoginPage = ({ setIsLoggedIn }) => {
   const [email, setEmail] = useState('');
@@ -14,38 +12,46 @@ const LoginPage = ({ setIsLoggedIn }) => {
       alert('이메일과 비밀번호를 입력하세요!');
       return;
     }
-  
+
+    const payload = {
+      email: email, 
+      password: password
+    };
+
+    console.log('보내는 로그인 요청:', JSON.stringify(payload));
+
     try {
-      const response = await axios.post('http://localhost:8000/api/accounts/login/', {
-        username: email,
-        password: password,
+      const response = await fetch('http://localhost:8000/api/accounts/login/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
-  
-      // 로그인 성공
-      const { access, refresh } = response.data;
-      localStorage.setItem('accessToken', access);
-      localStorage.setItem('refreshToken', refresh);
-      setIsLoggedIn(true);
-      navigate('/');
-    } catch (error) {
-      if (error.response) {
-        const message = error.response.data?.non_field_errors?.[0] || '로그인에 실패했습니다.';
-        if (message.includes('No active account found')) {
-          alert('없는 아이디입니다.');
-        } else if (message.includes('Unable to log in')) {
-          alert('비밀번호가 틀렸습니다.');
-        } else {
-          alert(message);
-        }
+
+      const data = await response.json();
+      console.log('로그인 응답:', data);
+
+      if (response.ok && data.access && data.refresh) {
+        localStorage.setItem('accessToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
+        setIsLoggedIn(true); // 로그인 상태 업데이트
+        navigate('/'); // 메인 페이지로 이동
       } else {
-        alert('서버에 연결할 수 없습니다.');
+        const message =
+          data.non_field_errors?.[0] ||
+          data.detail ||
+          '로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요.';
+        alert(message);
       }
+    } catch (error) {
+      console.error('로그인 중 에러 발생:', error);
+      alert('서버에 연결할 수 없습니다.');
     }
   };
-  
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">  
+    <div className="flex items-center justify-center min-h-screen bg-[#FFFAF1]">
       <form
         onSubmit={handleLogin}
         className="bg-white w-full max-w-md p-10 border rounded-2xl shadow-lg -translate-y-10"
@@ -70,7 +76,6 @@ const LoginPage = ({ setIsLoggedIn }) => {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        {/* 회원가입 링크 */}
         <div className="text-right mb-6">
           <Link to="/signup" className="text-sm text-blue-700 hover:underline">
             회원가입
@@ -79,7 +84,7 @@ const LoginPage = ({ setIsLoggedIn }) => {
 
         <button
           type="submit"
-          className="w-full bg-[#f4cfa1] hover:bg-[#f1c593] text-black py-2 rounded-md font-medium"
+          className="w-full bg-[#ffffff] hover:bg-[#9bcf9f] text-black py-2 rounded-2xl font-medium border-2 border-[#9bcf9f]"
         >
           로그인
         </button>

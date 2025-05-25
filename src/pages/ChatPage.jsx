@@ -1,23 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { IoIosSend } from 'react-icons/io';
-import { HiOutlineMenu } from 'react-icons/hi';
 import { FaArrowLeft } from 'react-icons/fa';
 import { FaUser } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import cloverImg from '../assets/clover.png';
 
 const ChatPage = () => {
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: '어떤 이야기든 괜찮아요. 힘든 일이 있거나, 그냥 누군가에게 말하고 싶은 게 있으면 편하게 얘기해 주세요.' },
+    {
+      sender: 'bot',
+      text: '어떤 이야기든 괜찮아요. 힘든 일이 있거나, 그냥 누군가에게 말하고 싶은 게 있으면 편하게 얘기해 주세요.',
+    },
   ]);
   const [input, setInput] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const newMessage = { sender: 'user', text: input };
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, newMessage, { sender: 'bot', text: null }]);
     setInput('');
 
     try {
@@ -32,83 +40,97 @@ const ChatPage = () => {
       if (!response.ok) throw new Error('서버 응답 오류');
 
       const data = await response.json();
-      const botMessage = { sender: 'bot', text: data.response };
-      setMessages((prev) => [...prev, botMessage]);
+      const answer = data.response;
 
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { sender: 'bot', text: answer };
+        return updated;
+      });
     } catch (error) {
       console.error('Error fetching bot response:', error);
-      setMessages((prev) => [
-        ...prev,
-        { sender: 'bot', text: '죄송해요. 잠시 오류가 발생했어요.' },
-      ]);
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = {
+          sender: 'bot',
+          text: '죄송해요. 잠시 오류가 발생했어요.',
+        };
+        return updated;
+      });
     }
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col overflow-hidden">
       {/* 상단바 */}
-      <div className="bg-[#F6C998] px-4 py-2 flex justify-between items-center">
-        <button onClick={() => setSidebarOpen(!sidebarOpen)}>
-          <HiOutlineMenu size={24} color="white" />
-        </button>
+      <div className="bg-[#9bcf9f] px-4 py-2 flex justify-between items-center">
         <button>
-          <Link to="/"><FaArrowLeft size={20} color="white" /></Link>
+          <Link to="/">
+            <FaArrowLeft size={20} color="white" />
+          </Link>
         </button>
       </div>
 
       {/* 본문 */}
-      <div className="flex flex-1 relative">
-        {/* 사이드바 */}
-        <AnimatePresence>
-          {sidebarOpen && (
-            <motion.div
-              initial={{ x: -300, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -300, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="absolute top-0 left-0 h-full w-64 bg-white p-4 shadow-lg z-10"
-            >
-              <div className="bg-[#FCECD6] p-3 rounded shadow mb-4 font-bold rounded-xl">
-                새 채팅
-              </div>
-              <ul className="space-y-4">
-                <li>
-                  <Link to="/consult">
-                    가까운 상담센터 찾기
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/safety">
-                    안전 가이드
-                  </Link>
-                </li>
-              </ul>
-              <div className="absolute bottom-4 left-4 text-gray-500 text-xl">
-                <Link to="/mypage"><FaUser size={20} /></Link>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <div className="flex flex-1 overflow-hidden bg-[#FFFAF1]">
+        {/* 고정 사이드바 */}
+        <div className="h-full w-[250px] bg-[#e7ddcb] p-4 shadow-lg z-10">
+          <div className="bg-[#a1957e] p-3 rounded shadow mb-4 font-bold rounded-xl">새 채팅</div>
+          <ul className="space-y-4">
+            <li>
+              <Link to="/consult">가까운 상담센터 찾기</Link>
+            </li>
+            <li>
+              <Link to="/safety">안전 가이드</Link>
+            </li>
+          </ul>
+          <div className="absolute bottom-4 left-4 text-gray-500 text-xl">
+            <Link to="/mypage">
+              <FaUser size={20} />
+            </Link>
+          </div>
+        </div>
 
         {/* 채팅창 */}
-        <div className="flex-1 p-4 flex flex-col bg-white border rounded-md m-4 overflow-hidden">
-          <div className="flex-1 overflow-y-auto space-y-4">
-            {messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`px-4 py-2 rounded-2xl border text-sm max-w-[50%] break-words shadow-md ${
-                  msg.sender === 'bot'
-                    ? 'bg-[#ffffff] text-left self-start border-[#FCECD6]'
-                    : 'bg-[#ffffff] text-right self-end border-[#F6C998] ml-auto'
-                }`}
-              >
-                {msg.text}
-              </div>
-            ))}
+        <div className="flex-1 max-w-[1000px] mx-auto p-4 flex flex-col bg-[#FFFAF1] rounded-md m-4 overflow-hidden">
+          {/* 채팅 메시지 영역 */}
+          <div
+            id="chat-container"
+            className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-hide"
+            style={{ scrollbarWidth: 'none' }}
+          >
+            {messages.map((msg, index) =>
+              msg.sender === 'bot' ? (
+                <div key={index} className="flex items-start space-x-2">
+                  <img
+                    src={cloverImg}
+                    alt="bot"
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                  <div className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-line break-keep shadow-md max-w-[50%] w-fit bg-[#9bcf9f] text-left self-start">
+                    {msg.text === null ? (
+                      <span className="text-black italic animate-pulse">
+                        답변 작성 중...
+                      </span>
+                    ) : (
+                      msg.text
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div
+                  key={index}
+                  className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-line break-keep shadow-md max-w-[50%] w-fit bg-[#ffffff] text-right self-end ml-auto"
+                >
+                  {msg.text}
+                </div>
+              )
+            )}
+            <div ref={bottomRef} />
           </div>
 
           {/* 입력창 */}
-          <div className="flex items-center mt-4 border rounded px-3 py-2 bg-white">
+          <div className="flex items-center mt-4 border rounded-2xl px-3 py-2 bg-white shrink-0">
             <input
               type="text"
               value={input}
@@ -118,7 +140,7 @@ const ChatPage = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             />
             <button onClick={handleSend}>
-              <IoIosSend size={24} color="#f1cea0" />
+              <IoIosSend size={24} color="#9c7e69" />
             </button>
           </div>
         </div>

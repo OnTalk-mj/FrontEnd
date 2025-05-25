@@ -11,7 +11,7 @@ const SignUpComplete = () => {
 
   return (
     <>
-      <div className="flex justify-center items-center min-h-[calc(100vh-80px)]">
+      <div className="flex bg-[#FFFAF1] justify-center items-center min-h-[calc(100vh-80px)]">
         <div className="bg-white border rounded-2xl shadow p-10 w-full max-w-md text-center space-y-6">
           <h2 className="text-2xl font-bold">회원가입 완료!</h2>
 
@@ -32,7 +32,7 @@ const SignUpComplete = () => {
 
           <button
             onClick={() => navigate('/login')}
-            className="w-full bg-[#e39292] hover:bg-[#d87c7c] text-white py-2 rounded"
+            className="w-full bg-[#ffffff] hover:bg-[#9bcf9f] text-black py-2 rounded-2xl border-2 border-[#9bcf9f]"
           >
             로그인으로 돌아가기
           </button>

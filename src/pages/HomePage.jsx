@@ -5,10 +5,10 @@ import megaphone from '../assets/megaphone.png';
 import finger from '../assets/finger.png';
 import bell from '../assets/bell.png';
 import chat from '../assets/chat.png';
+import clover from '../assets/speech_bubble_2.png';
 import FeatureItem from '../components/FeatureItem';
 import { useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
-
 
 const HomePage = ({ isLoggedIn, serviceRef }) => {
   const navigate = useNavigate();
@@ -62,37 +62,34 @@ const HomePage = ({ isLoggedIn, serviceRef }) => {
     },
   ];
 
-
   return (
-    <div className="w-full flex flex-col items-center">
-      
-
-      {/* 메인 원형 */}
-      <div className="flex justify-center mt-20 mb-32">
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0, y: 30 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
+    <div className="w-full flex flex-col items-center bg-[#FFFAF1]">
+      {/* 메인 클로버 이미지 영역 */}
+      <div className="relative flex justify-center items-center mt-20 mb-32 w-[500px] h-[500px]">
+        <motion.img
+          src={clover}
+          alt="clover"
+          className="absolute w-[500px] h-[500px] object-contain"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="w-96 h-96 bg-[#FCECD6] rounded-full flex flex-col items-center justify-center shadow-md"
-        >
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="text-xl font-bold text-center"
-          >
-            고민이 있나요?<br />챗봇에게 말해보세요!
-          </motion.p>
+        />
 
-          <motion.button
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="z-10 text-center flex flex-col items-center -mt-10"
+        >
+          <p className="text-xl font-bold text-[#333] mb-4">
+            고민이 있나요?<br />챗봇에게 말해보세요!
+          </p>
+          <button
             onClick={handleButtonClick}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1 }}
-            className="mt-6 px-6 py-2 bg-white border rounded-lg shadow hover:bg-gray-100"
+            className="px-6 py-2 bg-white rounded-3xl shadow-lg hover:bg-[#8BCA80]"
           >
             {isLoggedIn ? '시작하기' : '로그인하기'}
-          </motion.button>
+          </button>
         </motion.div>
       </div>
 
@@ -100,14 +97,13 @@ const HomePage = ({ isLoggedIn, serviceRef }) => {
       <div ref={serviceRef} className="w-full max-w-5xl px-4 space-y-20 pb-32 mt-32">
         {features.map((item, idx) => (
           <FeatureItem
-          key={idx}
-          idx={idx}
-          image={item.image}
-          title={item.title}
-          desc={item.desc}
-          reverse={idx % 2 !== 0}
-        />
-        
+            key={idx}
+            idx={idx}
+            image={item.image}
+            title={item.title}
+            desc={item.desc}
+            reverse={idx % 2 !== 0}
+          />
         ))}
       </div>
     </div>

@@ -72,30 +72,52 @@ const SignUpForm = () => {
     }).open();
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (
-      form.emailId &&
-      form.password &&
-      form.confirmPassword &&
-      form.name &&
-      form.birth &&
-      form.phone &&
-      form.address &&
-      form.zipcode &&
-      validateForm()
+      !(
+        form.emailId && form.password && form.confirmPassword &&
+        form.name && form.birth && form.phone && form.address &&
+        form.zipcode && validateForm()
+      )
     ) {
-      navigate('/signup/complete', {
-        state: {
-          email: `${form.emailId}@${form.emailDomain}`,
-          name: form.name,
-          phone: form.phone,
-          birth: form.birth,
-        },
-      });
-    } else {
-      alert('모든 항목을 올바르게 입력해주세요.');
+        return alert("모든 항목을 올바르게 입력해주세요.");
     }
-  };
+    const payload = {
+      email: `${form.emailId}@${form.emailDomain}`,
+      password: form.password,
+      password2: form.confirmPassword,
+      name: form.name,
+      birth: form.birth,
+      phone: form.phone,
+      address: form.address,
+      zipcode: form.zipcode,
+    };
+
+    try {
+      const res = await fetch("http://localhost:8000/api/accounts/signup/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      });
+    
+        if (res.ok) {
+          navigate("/signup/complete", {
+            state: {
+              email: payload.email,
+              name: payload.name,
+              phone: payload.phone,
+              birth: payload.birth,
+            },
+          });
+        } else {
+          const err = await res.json();
+          alert("회원가입 실패: " + JSON.stringify(err));
+        }
+      } catch (e) {
+        console.error(e);
+        alert("서버 통신 오류가 발생했습니다.");
+      }
+    };
 
   return (
     <>
@@ -238,7 +260,7 @@ const SignUpForm = () => {
 
 
         <button
-          className="w-full bg-[#e39292] hover:bg-[#d87c7c] text-white py-3 rounded"
+          className="w-full bg-[#ffffff] hover:bg-[#9bcf9f] text-black py-2 rounded-2xl border-2 border-[#9bcf9f]"
           onClick={handleComplete}
         >
           회원가입 완료하기
