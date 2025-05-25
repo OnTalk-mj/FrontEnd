@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { IoIosSend } from 'react-icons/io';
-import { FaArrowLeft } from 'react-icons/fa';
-import { FaUser } from 'react-icons/fa';
+import { FaArrowLeft, FaUser } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import cloverImg from '../assets/clover.png';
 
@@ -60,6 +59,39 @@ const ChatPage = () => {
     }
   };
 
+  const handleVideoRecommend = async () => {
+    if (!input.trim()) return alert('추천할 내용을 입력하세요.');
+
+    const userMsg = { sender: 'user', text: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput('');
+
+    try {
+      const res = await fetch('http://localhost:8000/api/recommend-videos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input }),
+      });
+
+      const data = await res.json();
+      const gptMsg = { sender: 'bot', text: data.response }; // includes <YouTube>link</YouTube>
+      setMessages((prev) => [...prev, gptMsg]);
+    } catch {
+      setMessages((prev) => [...prev, { sender: 'bot', text: '추천 영상 응답 중 오류가 발생했어요.' }]);
+    }
+  };
+
+//   const handleVideoRecommend = () => {
+//   // 테스트용: 백엔드 없이 바로 메시지 추가
+//   const dummyMessage = {
+//     sender: 'bot',
+//     text: `자해에 대한 어려움을 겪고 있는 당신을 위해 추천드려요.\n\n<YouTube>https://www.youtube.com/watch?v=BPbjcLkWtqg</YouTube>`,
+//   };
+
+//   setMessages((prev) => [...prev, dummyMessage]);
+// };
+
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       {/* 상단바 */}
@@ -99,21 +131,30 @@ const ChatPage = () => {
             className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-hide"
             style={{ scrollbarWidth: 'none' }}
           >
-            {messages.map((msg, index) =>
+            {messages.map((msg, index) => (
               msg.sender === 'bot' ? (
                 <div key={index} className="flex items-start space-x-2">
-                  <img
-                    src={cloverImg}
-                    alt="bot"
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
+                  <img src={cloverImg} alt="bot" className="w-8 h-8 rounded-full object-cover" />
                   <div className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-line break-keep shadow-md max-w-[50%] w-fit bg-[#9bcf9f] text-left self-start">
-                    {msg.text === null ? (
-                      <span className="text-black italic animate-pulse">
-                        답변 작성 중...
-                      </span>
+                    {msg.text?.includes('<YouTube>') ? (
+                      <>
+                        <p className="mb-2">{msg.text.split('<YouTube>')[0].trim()}</p>
+                        <iframe
+                          width="100%"
+                          height="215"
+                          className="rounded-xl"
+                          src={msg.text.split('<YouTube>')[1].replace('</YouTube>', '').replace('watch?v=', 'embed/')}
+                          title="추천 영상"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      </>
                     ) : (
-                      msg.text
+                      msg.text === null ? (
+                        <span className="text-black italic animate-pulse">답변 작성 중...</span>
+                      ) : (
+                        msg.text
+                      )
                     )}
                   </div>
                 </div>
@@ -125,12 +166,12 @@ const ChatPage = () => {
                   {msg.text}
                 </div>
               )
-            )}
+            ))}
             <div ref={bottomRef} />
           </div>
 
           {/* 입력창 */}
-          <div className="flex items-center mt-4 border rounded-2xl px-3 py-2 bg-white shrink-0">
+          <div className="flex items-center mt-4 border rounded-2xl px-3 py-2 bg-white shrink-0 gap-2">
             <input
               type="text"
               value={input}
@@ -141,6 +182,13 @@ const ChatPage = () => {
             />
             <button onClick={handleSend}>
               <IoIosSend size={24} color="#9c7e69" />
+            </button>
+            <button
+              onClick={handleVideoRecommend}
+              className="text-sm px-2 py-1 rounded-xl bg-[#87C68C] text-white"
+              title="유튜브 영상 추천"
+            >
+              🎬
             </button>
           </div>
         </div>
