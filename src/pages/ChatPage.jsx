@@ -59,37 +59,46 @@ const ChatPage = () => {
     }
   };
 
-  const handleVideoRecommend = async () => {
-    if (!input.trim()) return alert('추천할 내용을 입력하세요.');
+  // const handleVideoRecommend = async () => {
+  //   if (!input.trim()) return alert('추천할 내용을 입력하세요.');
 
-    const userMsg = { sender: 'user', text: input };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+  //   const userMsg = { sender: 'user', text: input };
+  //   setMessages((prev) => [...prev, userMsg]);
+  //   setInput('');
 
-    try {
-      const res = await fetch('http://localhost:8000/api/recommend-videos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
-      });
+  //   try {
+  //     const res = await fetch('http://localhost:8000/api/recommend-videos', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ message: input }),
+  //     });
 
-      const data = await res.json();
-      const gptMsg = { sender: 'bot', text: data.response }; // includes <YouTube>link</YouTube>
-      setMessages((prev) => [...prev, gptMsg]);
-    } catch {
-      setMessages((prev) => [...prev, { sender: 'bot', text: '추천 영상 응답 중 오류가 발생했어요.' }]);
-    }
+  //     const data = await res.json();
+  //     const gptMsg = { sender: 'bot', text: data.response }; // includes <YouTube>link</YouTube>
+  //     setMessages((prev) => [...prev, gptMsg]);
+  //   } catch {
+  //     setMessages((prev) => [...prev, { sender: 'bot', text: '추천 영상 응답 중 오류가 발생했어요.' }]);
+  //   }
+  // };
+
+  const handleVideoRecommend = () => {
+  // 테스트용: 백엔드 없이 바로 메시지 추가
+  const dummyMessage = {
+    sender: 'bot',
+    text: `자해에 대한 어려움을 겪고 있는 당신을 위해 추천드려요.\n\n<YouTube>https://www.youtube.com/watch?v=BPbjcLkWtqg</YouTube>`,
   };
 
-//   const handleVideoRecommend = () => {
-//   // 테스트용: 백엔드 없이 바로 메시지 추가
-//   const dummyMessage = {
-//     sender: 'bot',
-//     text: `자해에 대한 어려움을 겪고 있는 당신을 위해 추천드려요.\n\n<YouTube>https://www.youtube.com/watch?v=BPbjcLkWtqg</YouTube>`,
-//   };
+  setMessages((prev) => [...prev, dummyMessage]);
+};
 
-//   setMessages((prev) => [...prev, dummyMessage]);
-// };
+  const handleResetChat = () => {
+    setMessages([
+      {
+        sender: 'bot',
+        text: '어떤 이야기든 괜찮아요. 힘든 일이 있거나, 그냥 누군가에게 말하고 싶은 게 있으면 편하게 얘기해 주세요.',
+      },
+    ]);
+  };
 
 
   return (
@@ -107,7 +116,12 @@ const ChatPage = () => {
       <div className="flex flex-1 overflow-hidden bg-[#FFFAF1]">
         {/* 고정 사이드바 */}
         <div className="h-full w-[250px] bg-[#e7ddcb] p-4 shadow-lg z-10">
-          <div className="bg-[#a1957e] p-3 rounded shadow mb-4 font-bold rounded-xl">새 채팅</div>
+          <button
+            onClick={handleResetChat}
+            className="bg-[#a1957e] p-3 rounded shadow mb-4 font-bold rounded-xl w-full text-left"
+          >
+            새 채팅
+          </button>
           <ul className="space-y-4">
             <li>
               <Link to="/consult">가까운 상담센터 찾기</Link>
@@ -135,7 +149,7 @@ const ChatPage = () => {
               msg.sender === 'bot' ? (
                 <div key={index} className="flex items-start space-x-2">
                   <img src={cloverImg} alt="bot" className="w-8 h-8 rounded-full object-cover" />
-                  <div className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-line break-keep shadow-md max-w-[50%] w-fit bg-[#9bcf9f] text-left self-start">
+                  <div className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-wrap break-keep shadow-md max-w-[50%] w-fit bg-[#9bcf9f] text-left self-start">
                     {msg.text?.includes('<YouTube>') ? (
                       <>
                         <p className="mb-2">{msg.text.split('<YouTube>')[0].trim()}</p>
@@ -161,7 +175,7 @@ const ChatPage = () => {
               ) : (
                 <div
                   key={index}
-                  className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-line break-keep shadow-md max-w-[50%] w-fit bg-[#ffffff] text-right self-end ml-auto"
+                  className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-wrap break-keep shadow-md max-w-[50%] w-fit bg-[#ffffff] text-right self-end ml-auto"
                 >
                   {msg.text}
                 </div>
@@ -185,7 +199,7 @@ const ChatPage = () => {
             </button>
             <button
               onClick={handleVideoRecommend}
-              className="text-sm px-2 py-1 rounded-xl bg-[#87C68C] text-white"
+              className="text-sm px-2 py-1 rounded-xl bg-[#ffffff] text-white border border-gray-300"
               title="유튜브 영상 추천"
             >
               🎬
