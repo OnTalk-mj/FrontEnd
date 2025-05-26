@@ -59,37 +59,37 @@ const ChatPage = () => {
     }
   };
 
-  // const handleVideoRecommend = async () => {
-  //   if (!input.trim()) return alert('추천할 내용을 입력하세요.');
+  const handleVideoRecommend = async () => {
+    if (!input.trim()) return alert('추천할 내용을 입력하세요.');
 
-  //   const userMsg = { sender: 'user', text: input };
-  //   setMessages((prev) => [...prev, userMsg]);
-  //   setInput('');
+    const userMsg = { sender: 'user', text: input };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput('');
 
-  //   try {
-  //     const res = await fetch('http://localhost:8000/api/recommend-videos', {
-  //       method: 'POST',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify({ message: input }),
-  //     });
+    try {
+      const res = await fetch('http://localhost:8000/api/recommend-videos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input }),
+      });
 
-  //     const data = await res.json();
-  //     const gptMsg = { sender: 'bot', text: data.response }; // includes <YouTube>link</YouTube>
-  //     setMessages((prev) => [...prev, gptMsg]);
-  //   } catch {
-  //     setMessages((prev) => [...prev, { sender: 'bot', text: '추천 영상 응답 중 오류가 발생했어요.' }]);
-  //   }
-  // };
-
-  const handleVideoRecommend = () => {
-  // 테스트용: 백엔드 없이 바로 메시지 추가
-  const dummyMessage = {
-    sender: 'bot',
-    text: `자해에 대한 어려움을 겪고 있는 당신을 위해 추천드려요.\n\n<YouTube>https://www.youtube.com/watch?v=BPbjcLkWtqg</YouTube>`,
+      const data = await res.json();
+      const gptMsg = { sender: 'bot', text: data.response }; // includes <YouTube>link</YouTube>
+      setMessages((prev) => [...prev, gptMsg]);
+    } catch {
+      setMessages((prev) => [...prev, { sender: 'bot', text: '추천 영상 응답 중 오류가 발생했어요.' }]);
+    }
   };
 
-  setMessages((prev) => [...prev, dummyMessage]);
-};
+//   const handleVideoRecommend = () => {
+//   // 테스트용: 백엔드 없이 바로 메시지 추가
+//   const dummyMessage = {
+//     sender: 'bot',
+//     text: `자해에 대한 어려움을 겪고 있는 당신을 위해 추천드려요.\n\n<YouTube>https://www.youtube.com/watch?v=BPbjcLkWtqg</YouTube>`,
+//   };
+
+//   setMessages((prev) => [...prev, dummyMessage]);
+// };
 
   const handleResetChat = () => {
     setMessages([
