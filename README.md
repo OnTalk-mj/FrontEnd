@@ -4,3 +4,4 @@ git clone https://github.com/OnTalk-mj/FrontEnd.git
 cd front
 npm install
 npm start
+npm install framer-motion

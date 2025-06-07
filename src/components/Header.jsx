@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import clover from '../assets/clover.png'; // ✅ 이미지 임포트 (경로 맞게 조정)
+import clover from '../assets/clover.png'; 
 
 const Header = ({ isLoggedIn, onServiceClick }) => {
   return (
@@ -12,7 +12,7 @@ const Header = ({ isLoggedIn, onServiceClick }) => {
         <div className="flex space-x-6 text-base">
           <Link to="/#service">서비스 소개</Link>
           <Link to="/consult">상담센터 찾기</Link>
-          <Link to="/safety">안전 가이드</Link>
+          <Link to="/safety">심리 자가진단</Link>
         </div>
       </div>
 

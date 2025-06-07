@@ -10,6 +10,26 @@ const ConsultCenterPage = () => {
   const markerRef = useRef([]);
   const mapRef = useRef(null);
   const userCoordRef = useRef(null);
+  const pagesToShow = 5;
+  const totalPages = Math.ceil(sortedCenters.length / centersPerPage);
+  const totalBlocks = Math.ceil(totalPages / pagesToShow);
+  const currentBlock = Math.floor((currentPage - 1) / pagesToShow);
+  const startPage = currentBlock * pagesToShow + 1;
+  const endPage = Math.min(startPage + pagesToShow - 1, totalPages);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const formatWebsiteUrl = (url) => {
+    if (!url) return '';
+    return url.startsWith('http://') || url.startsWith('https://')
+      ? url
+      : `http://${url}`;
+  };
+  
+  useEffect(() => {
+    if (mapLoaded) {
+      fetchCentersFromBackend();
+    }
+  }, [mapLoaded]);
 
   // Kakao Map Script 불러오기
   useEffect(() => {
@@ -65,23 +85,33 @@ const ConsultCenterPage = () => {
 
       markerRef.current.push(marker);
 
-      const content = `
-        <div style="
-          box-sizing: border-box;
-          width: 200px;
-          padding: 8px 12px;
-          font-size: 13px;
-          white-space: normal;
-          word-break: break-word;
-          overflow-wrap: break-word;
-          overflow: hidden;
-          line-height: 1.4;
-        ">
-          <div style="font-weight: bold; margin-bottom: 4px;">${center.name}</div>
-          <div>${center.region}</div>
-          <div style="word-break: break-all;">📞 ${center.phone}</div>
-        </div>
-      `;
+    const content = `
+      <div style="
+        box-sizing: border-box;
+        width: 200px;
+        padding: 8px 12px;
+        font-size: 13px;
+        white-space: normal;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        overflow: hidden;
+        line-height: 1.4;
+      ">
+        <div style="font-weight: bold; margin-bottom: 4px;">${center.name}</div>
+        <div>${center.region}</div>
+        <div style="word-break: break-all;">📞 ${center.phone}</div>
+        ${
+          center.website
+            ? `<div style="margin-top: 6px;">
+                 <a href="${formatWebsiteUrl(center.website)}" target="_blank" rel="noopener noreferrer"
+                   style="display:inline-block; margin-top:4px; padding:6px 10px; background:white; color:black; border-radius:20px; border: 1px solid black; font-size:12px; text-align:center; text-decoration:none; ">
+                   홈페이지
+                 </a>
+               </div>`
+            : ''
+        }
+      </div>
+    `;
 
       window.kakao.maps.event.addListener(marker, 'click', () => {
         infowindow.setContent(content);
@@ -106,8 +136,12 @@ const ConsultCenterPage = () => {
 
   // 상담센터 및 사용자 위치 불러오기
   const fetchCentersFromBackend = async () => {
-    try {
-      const token = localStorage.getItem('accessToken');
+  try {
+    setIsLoading(true); // 로딩 시작
+    const token = localStorage.getItem('accessToken');
+    let userAddress = '서울 중구 세종대로 110'; // 기본 주소
+
+    if (token) {
       const userResponse = await fetch('http://localhost:8000/api/accounts/mypage/', {
         method: 'GET',
         headers: {
@@ -115,58 +149,61 @@ const ConsultCenterPage = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      const userData = await userResponse.json();
-      const userAddress = userData.address;
 
-      // 사용자 주소 → 좌표
-      const geoRes = await new Promise((resolve, reject) => {
-        const geocoder = new window.kakao.maps.services.Geocoder();
-        geocoder.addressSearch(userAddress, (result, status) => {
-          if (status === window.kakao.maps.services.Status.OK) {
-            resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
-          } else {
-            reject('사용자 주소 좌표 변환 실패');
-          }
-        });
-      });
-
-      userCoordRef.current = geoRes;
-
-      const res = await fetch(
-        `http://localhost:8000/api/consult/centerlist/?region=${region}&keyword=${keyword}`
-      );
-      const data = await res.json();
-
-      const geocoder = new window.kakao.maps.services.Geocoder();
-      const centersWithCoords = await Promise.all(
-        data.map((center) => {
-          return new Promise((resolve) => {
-            geocoder.addressSearch(center.address, (result, status) => {
-              if (status === window.kakao.maps.services.Status.OK) {
-                const latitude = parseFloat(result[0].y);
-                const longitude = parseFloat(result[0].x);
-                const distance = getDistance(
-                  geoRes.lat,
-                  geoRes.lng,
-                  latitude,
-                  longitude
-                );
-                resolve({ ...center, latitude, longitude, distance });
-              } else {
-                resolve(null);
-              }
-            });
-          });
-        })
-      );
-
-      const validCenters = centersWithCoords.filter((center) => center !== null);
-      setSortedCenters(validCenters.sort((a, b) => a.distance - b.distance));
-      setCurrentPage(1);
-    } catch (err) {
-      console.error('상담센터 불러오기 오류:', err);
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        if (userData.address) {
+          userAddress = userData.address;
+        }
+      }
     }
-  };
+
+    // 주소 → 좌표 변환
+    const geoRes = await new Promise((resolve, reject) => {
+      const geocoder = new window.kakao.maps.services.Geocoder();
+      geocoder.addressSearch(userAddress, (result, status) => {
+        if (status === window.kakao.maps.services.Status.OK) {
+          resolve({ lat: parseFloat(result[0].y), lng: parseFloat(result[0].x) });
+        } else {
+          reject('주소 좌표 변환 실패');
+        }
+      });
+    });
+
+    userCoordRef.current = geoRes;
+
+    const res = await fetch(
+      `http://localhost:8000/api/consult/centerlist/?region=${region}&keyword=${keyword}`
+    );
+    const data = await res.json();
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    const centersWithCoords = await Promise.all(
+      data.map((center) => {
+        return new Promise((resolve) => {
+          geocoder.addressSearch(center.address, (result, status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+              const latitude = parseFloat(result[0].y);
+              const longitude = parseFloat(result[0].x);
+              const distance = getDistance(geoRes.lat, geoRes.lng, latitude, longitude);
+              resolve({ ...center, latitude, longitude, distance });
+            } else {
+              resolve(null);
+            }
+          });
+        });
+      })
+    );
+
+    const validCenters = centersWithCoords.filter((center) => center !== null);
+    setSortedCenters(validCenters.sort((a, b) => a.distance - b.distance));
+    setCurrentPage(1);
+  } catch (err) {
+    console.error('상담센터 불러오기 오류:', err);
+  } finally {
+    setIsLoading(false); // 로딩 종료
+  }
+};
 
   const handleSearch = () => {
     fetchCentersFromBackend();
@@ -175,7 +212,6 @@ const ConsultCenterPage = () => {
   const indexOfLast = currentPage * centersPerPage;
   const indexOfFirst = indexOfLast - centersPerPage;
   const currentCenters = sortedCenters.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(sortedCenters.length / centersPerPage);
 
   return (
     <div style={{ backgroundColor: '#FFFAF1', minHeight: '100vh' }}>
@@ -214,7 +250,11 @@ const ConsultCenterPage = () => {
             </button>
           </div>
         </div>
-
+        {isLoading && (
+          <div className="text-center text-gray-600 my-4 animate-pulse">
+            상담센터 정보를 불러오는 중입니다...
+          </div>
+        )}
         <div
           id="map"
           className="w-full h-[400px] mb-6 border rounded-2xl"
@@ -233,25 +273,60 @@ const ConsultCenterPage = () => {
             {currentCenters.map((item, idx) => (
               <tr key={idx} className="border-t border-gray-300 bg-white">
                 <td className="py-2 px-4 border">{item.region}</td>
-                <td className="py-2 px-4 border">{item.name}</td>
+                <td className="py-2 px-4 border">
+                  <a
+                    href={formatWebsiteUrl(item.website)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:bg-yellow-300"
+                  >
+                    {item.name}
+                  </a>
+                </td>
                 <td className="py-2 px-4 border">{item.distance.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
 
-        <div className="flex justify-center mt-6 space-x-2">
-          {[...Array(totalPages)].map((_, i) => (
+        <div className="flex justify-center items-center mt-6 space-x-2">
+          {/* 이전 블록 */}
+          {currentBlock > 0 && (
             <button
-              key={i}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1 ? 'bg-[#87C68C] text-white' : 'bg-white border'
-              }`}
-              onClick={() => setCurrentPage(i + 1)}
+              onClick={() => setCurrentPage(startPage - 1)}
+              className="px-3 py-1 rounded-full border hover:bg-[#87C68C] hover:text-white"
             >
-              {i + 1}
+              ◀
             </button>
-          ))}
+          )}
+
+          {/* 페이지 번호 */}
+          {Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+            const page = startPage + i;
+            return (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 rounded-full transition-all duration-200 ${
+                  currentPage === page
+                    ? 'bg-[#87C68C] text-white font-semibold shadow-md'
+                    : 'bg-white border hover:bg-[#f0f0f0]'
+                }`}
+              >
+                {page}
+              </button>
+            );
+          })}
+
+          {/* 다음 블록 */}
+          {currentBlock < totalBlocks - 1 && (
+            <button
+              onClick={() => setCurrentPage(endPage + 1)}
+              className="px-3 py-1 rounded-full border hover:bg-[#87C68C] hover:text-white"
+            >
+              ▶
+            </button>
+          )}
         </div>
       </div>
     </div>

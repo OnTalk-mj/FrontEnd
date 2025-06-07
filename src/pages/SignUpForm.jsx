@@ -8,7 +8,7 @@ const SignUpForm = () => {
   const handleCheckDuplicate = async () => {
     try {
       const res = await axios.post('http://localhost:8000/api/accounts/id-check/', {
-        username: `${form.emailId}@${form.emailDomain}`,
+        email: `${form.emailId}@${form.emailDomain}`,
       });
   
       if (res.data.exists) {

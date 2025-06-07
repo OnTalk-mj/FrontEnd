@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { IoIosSend } from 'react-icons/io';
 import { FaArrowLeft, FaUser } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import cloverImg from '../assets/clover.png';
 
 const ChatPage = () => {
@@ -74,22 +75,12 @@ const ChatPage = () => {
       });
 
       const data = await res.json();
-      const gptMsg = { sender: 'bot', text: data.response }; // includes <YouTube>link</YouTube>
+      const gptMsg = { sender: 'bot', text: data.response };
       setMessages((prev) => [...prev, gptMsg]);
     } catch {
       setMessages((prev) => [...prev, { sender: 'bot', text: '추천 영상 응답 중 오류가 발생했어요.' }]);
     }
   };
-
-//   const handleVideoRecommend = () => {
-//   // 테스트용: 백엔드 없이 바로 메시지 추가
-//   const dummyMessage = {
-//     sender: 'bot',
-//     text: `자해에 대한 어려움을 겪고 있는 당신을 위해 추천드려요.\n\n<YouTube>https://www.youtube.com/watch?v=BPbjcLkWtqg</YouTube>`,
-//   };
-
-//   setMessages((prev) => [...prev, dummyMessage]);
-// };
 
   const handleResetChat = () => {
     setMessages([
@@ -100,10 +91,8 @@ const ChatPage = () => {
     ]);
   };
 
-
   return (
     <div className="h-screen flex flex-col overflow-hidden">
-      {/* 상단바 */}
       <div className="bg-[#9bcf9f] px-4 py-2 flex justify-between items-center">
         <button>
           <Link to="/">
@@ -112,9 +101,7 @@ const ChatPage = () => {
         </button>
       </div>
 
-      {/* 본문 */}
       <div className="flex flex-1 overflow-hidden bg-[#FFFAF1]">
-        {/* 고정 사이드바 */}
         <div className="h-full w-[250px] bg-[#e7ddcb] p-4 shadow-lg z-10">
           <button
             onClick={handleResetChat}
@@ -127,7 +114,7 @@ const ChatPage = () => {
               <Link to="/consult">가까운 상담센터 찾기</Link>
             </li>
             <li>
-              <Link to="/safety">안전 가이드</Link>
+              <Link to="/safety">심리 자가진단</Link>
             </li>
           </ul>
           <div className="absolute bottom-4 left-4 text-gray-500 text-xl">
@@ -137,9 +124,7 @@ const ChatPage = () => {
           </div>
         </div>
 
-        {/* 채팅창 */}
         <div className="flex-1 max-w-[1000px] mx-auto p-4 flex flex-col bg-[#FFFAF1] rounded-md m-4 overflow-hidden">
-          {/* 채팅 메시지 영역 */}
           <div
             id="chat-container"
             className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-hide"
@@ -147,7 +132,13 @@ const ChatPage = () => {
           >
             {messages.map((msg, index) => (
               msg.sender === 'bot' ? (
-                <div key={index} className="flex items-start space-x-2">
+                <motion.div
+                  key={index}
+                  className="flex items-start space-x-2"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
+                >
                   <img src={cloverImg} alt="bot" className="w-8 h-8 rounded-full object-cover" />
                   <div className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-wrap break-keep shadow-md max-w-[50%] w-fit bg-[#9bcf9f] text-left self-start">
                     {msg.text?.includes('<YouTube>') ? (
@@ -171,20 +162,22 @@ const ChatPage = () => {
                       )
                     )}
                   </div>
-                </div>
+                </motion.div>
               ) : (
-                <div
+                <motion.div
                   key={index}
                   className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-wrap break-keep shadow-md max-w-[50%] w-fit bg-[#ffffff] text-right self-end ml-auto"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6 }}
                 >
                   {msg.text}
-                </div>
+                </motion.div>
               )
             ))}
             <div ref={bottomRef} />
           </div>
 
-          {/* 입력창 */}
           <div className="flex items-center mt-4 border rounded-2xl px-3 py-2 bg-white shrink-0 gap-2">
             <input
               type="text"
