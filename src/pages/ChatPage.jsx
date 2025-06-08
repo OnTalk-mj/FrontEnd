@@ -6,14 +6,13 @@ import { motion } from 'framer-motion';
 import cloverImg from '../assets/clover.png';
 
 const ChatPage = () => {
-  const [messages, setMessages] = useState([
-    {
-      sender: 'bot',
-      text: '어떤 이야기든 괜찮아요. 힘든 일이 있거나, 그냥 누군가에게 말하고 싶은 게 있으면 편하게 얘기해 주세요.',
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const bottomRef = useRef(null);
+
+  useEffect(() => {
+    resetChat();
+  }, []);
 
   useEffect(() => {
     if (bottomRef.current) {
@@ -21,101 +20,76 @@ const ChatPage = () => {
     }
   }, [messages]);
 
+  const typeBotMessage = (fullText) => {
+    let index = 0;
+    const interval = 30;
+    let currentText = '';
+
+    const botMsg = { sender: 'bot', text: '' };
+    setMessages((prev) => [...prev, botMsg]);
+
+    const typing = setInterval(() => {
+      currentText += fullText[index];
+      index++;
+      setMessages((prev) => {
+        const updated = [...prev];
+        updated[updated.length - 1] = { sender: 'bot', text: currentText };
+        return updated;
+      });
+      if (index >= fullText.length) clearInterval(typing);
+    }, interval);
+  };
+
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const newMessage = { sender: 'user', text: input };
-    setMessages((prev) => [...prev, newMessage, { sender: 'bot', text: null }]);
+    const userMsg = { sender: 'user', text: input };
+    setMessages((prev) => [...prev, userMsg]);
+    const userInput = input;
     setInput('');
 
     try {
       const response = await fetch('http://localhost:8000/api/chat/', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: input }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userInput }),
       });
 
       if (!response.ok) throw new Error('서버 응답 오류');
 
       const data = await response.json();
-      const answer = data.response;
-
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = { sender: 'bot', text: answer };
-        return updated;
-      });
+      typeBotMessage(data.response);
     } catch (error) {
-      console.error('Error fetching bot response:', error);
-      setMessages((prev) => {
-        const updated = [...prev];
-        updated[updated.length - 1] = {
-          sender: 'bot',
-          text: '죄송해요. 잠시 오류가 발생했어요.',
-        };
-        return updated;
-      });
+      typeBotMessage('죄송해요. 잠시 오류가 발생했어요.');
     }
   };
 
-  const handleVideoRecommend = async () => {
-    if (!input.trim()) return alert('추천할 내용을 입력하세요.');
-
-    const userMsg = { sender: 'user', text: input };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
-
-    try {
-      const res = await fetch('http://localhost:8000/api/recommend-videos', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: input }),
-      });
-
-      const data = await res.json();
-      const gptMsg = { sender: 'bot', text: data.response };
-      setMessages((prev) => [...prev, gptMsg]);
-    } catch {
-      setMessages((prev) => [...prev, { sender: 'bot', text: '추천 영상 응답 중 오류가 발생했어요.' }]);
-    }
-  };
-
-  const handleResetChat = () => {
-    setMessages([
-      {
-        sender: 'bot',
-        text: '어떤 이야기든 괜찮아요. 힘든 일이 있거나, 그냥 누군가에게 말하고 싶은 게 있으면 편하게 얘기해 주세요.',
-      },
-    ]);
+  const resetChat = () => {
+    setMessages([]);
+    setTimeout(() => {
+      typeBotMessage('어떤 이야기든 괜찮아요. 힘든 일이 있거나, 그냥 누군가에게 말하고 싶은 게 있으면 편하게 얘기해 주세요.');
+    }, 100);
   };
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <div className="bg-[#9bcf9f] px-4 py-2 flex justify-between items-center">
-        <button>
-          <Link to="/">
-            <FaArrowLeft size={20} color="white" />
-          </Link>
-        </button>
+        <Link to="/">
+          <FaArrowLeft size={20} color="white" />
+        </Link>
       </div>
 
       <div className="flex flex-1 overflow-hidden bg-[#FFFAF1]">
         <div className="h-full w-[250px] bg-[#e7ddcb] p-4 shadow-lg z-10">
           <button
-            onClick={handleResetChat}
+            onClick={resetChat}
             className="bg-[#a1957e] p-3 rounded shadow mb-4 font-bold rounded-xl w-full text-left"
           >
             새 채팅
           </button>
           <ul className="space-y-4">
-            <li>
-              <Link to="/consult">가까운 상담센터 찾기</Link>
-            </li>
-            <li>
-              <Link to="/safety">심리 자가진단</Link>
-            </li>
+            <li><Link to="/consult">가까운 상담센터 찾기</Link></li>
+            <li><Link to="/safety">심리 자가진단</Link></li>
           </ul>
           <div className="absolute bottom-4 left-4 text-gray-500 text-xl">
             <Link to="/mypage">
@@ -131,49 +105,30 @@ const ChatPage = () => {
             style={{ scrollbarWidth: 'none' }}
           >
             {messages.map((msg, index) => (
-              msg.sender === 'bot' ? (
+              msg.text && msg.sender === 'bot' ? (
                 <motion.div
                   key={index}
                   className="flex items-start space-x-2"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
+                  transition={{ duration: 0.5 }}
                 >
                   <img src={cloverImg} alt="bot" className="w-8 h-8 rounded-full object-cover" />
-                  <div className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-wrap break-keep shadow-md max-w-[50%] w-fit bg-[#9bcf9f] text-left self-start">
-                    {msg.text?.includes('<YouTube>') ? (
-                      <>
-                        <p className="mb-2">{msg.text.split('<YouTube>')[0].trim()}</p>
-                        <iframe
-                          width="100%"
-                          height="215"
-                          className="rounded-xl"
-                          src={msg.text.split('<YouTube>')[1].replace('</YouTube>', '').replace('watch?v=', 'embed/')}
-                          title="추천 영상"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        ></iframe>
-                      </>
-                    ) : (
-                      msg.text === null ? (
-                        <span className="text-black italic animate-pulse">답변 작성 중...</span>
-                      ) : (
-                        msg.text
-                      )
-                    )}
+                  <div className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-wrap break-keep shadow-md bg-[#9bcf9f] text-left self-start max-w-[60%] w-fit">
+                    {msg.text}
                   </div>
                 </motion.div>
-              ) : (
+              ) : msg.text && msg.sender === 'user' ? (
                 <motion.div
                   key={index}
-                  className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-wrap break-keep shadow-md max-w-[50%] w-fit bg-[#ffffff] text-right self-end ml-auto"
+                  className="px-4 py-2 rounded-2xl text-[#000000] text-sm leading-loose whitespace-pre-wrap break-keep shadow-md bg-[#ffffff] text-right self-end ml-auto max-w-[60%] w-fit"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6 }}
+                  transition={{ duration: 0.5 }}
                 >
                   {msg.text}
                 </motion.div>
-              )
+              ) : null
             ))}
             <div ref={bottomRef} />
           </div>
@@ -189,13 +144,6 @@ const ChatPage = () => {
             />
             <button onClick={handleSend}>
               <IoIosSend size={24} color="#9c7e69" />
-            </button>
-            <button
-              onClick={handleVideoRecommend}
-              className="text-sm px-2 py-1 rounded-xl bg-[#ffffff] text-white border border-gray-300"
-              title="유튜브 영상 추천"
-            >
-              🎬
             </button>
           </div>
         </div>
